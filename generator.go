@@ -1,4 +1,4 @@
-package vfsgen
+package vfs
 
 import (
 	"bytes"
@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"text/template"
 	"time"
-
+	
 	"github.com/shurcooL/httpfs/vfsutil"
 )
 
@@ -21,31 +21,31 @@ import (
 // write the output to a file specified in opt.
 func Generate(input http.FileSystem, opt Options) error {
 	opt.fillMissing()
-
+	
 	// Use an in-memory buffer to generate the entire output.
 	buf := new(bytes.Buffer)
-
+	
 	err := t.ExecuteTemplate(buf, "Header", opt)
 	if err != nil {
 		return err
 	}
-
+	
 	var toc toc
 	err = findAndWriteFiles(buf, input, &toc)
 	if err != nil {
 		return err
 	}
-
+	
 	err = t.ExecuteTemplate(buf, "DirEntries", toc.dirs)
 	if err != nil {
 		return err
 	}
-
+	
 	err = t.ExecuteTemplate(buf, "Trailer", toc)
 	if err != nil {
 		return err
 	}
-
+	
 	// Write output file (all at once).
 	err = ioutil.WriteFile(opt.Filename, buf.Bytes(), 0644)
 	return err
@@ -53,7 +53,7 @@ func Generate(input http.FileSystem, opt Options) error {
 
 type toc struct {
 	dirs []*dirInfo
-
+	
 	HasCompressedFile bool // There's at least one compressedFile.
 	HasFile           bool // There's at least one uncompressed file.
 }
@@ -83,7 +83,7 @@ func findAndWriteFiles(buf *bytes.Buffer, fs http.FileSystem, toc *toc) error {
 			// Consider all errors reading the input filesystem as fatal.
 			return err
 		}
-
+		
 		switch fi.IsDir() {
 		case false:
 			file := &fileInfo{
@@ -92,9 +92,9 @@ func findAndWriteFiles(buf *bytes.Buffer, fs http.FileSystem, toc *toc) error {
 				ModTime:          fi.ModTime().UTC(),
 				UncompressedSize: fi.Size(),
 			}
-
+			
 			marker := buf.Len()
-
+			
 			// Write CompressedFileInfo.
 			err = writeCompressedFileInfo(buf, file, r)
 			switch err {
@@ -108,9 +108,9 @@ func findAndWriteFiles(buf *bytes.Buffer, fs http.FileSystem, toc *toc) error {
 				if err != nil {
 					return err
 				}
-
+				
 				buf.Truncate(marker)
-
+				
 				// Write FileInfo.
 				err = writeFileInfo(buf, file, r)
 				if err != nil {
@@ -123,26 +123,26 @@ func findAndWriteFiles(buf *bytes.Buffer, fs http.FileSystem, toc *toc) error {
 			if err != nil {
 				return err
 			}
-
+			
 			dir := &dirInfo{
 				Path:    path,
 				Name:    pathpkg.Base(path),
 				ModTime: fi.ModTime().UTC(),
 				Entries: entries,
 			}
-
+			
 			toc.dirs = append(toc.dirs, dir)
-
+			
 			// Write DirInfo.
 			err = t.ExecuteTemplate(buf, "DirInfo", dir)
 			if err != nil {
 				return err
 			}
 		}
-
+		
 		return nil
 	}
-
+	
 	err := vfsutil.WalkFiles(fs, "/", walkFn)
 	return err
 }

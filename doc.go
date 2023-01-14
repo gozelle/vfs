@@ -12,4 +12,4 @@ Features:
 
 -	Outputs `gofmt`ed Go code.
 */
-package vfsgen
+package vfs

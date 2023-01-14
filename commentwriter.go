@@ -1,4 +1,4 @@
-package vfsgen
+package vfs
 
 import "io"
 
