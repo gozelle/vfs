@@ -1,7 +1,7 @@
 vfsgen
 ======
 
-[![Build Status](https://travis-ci.org/shurcooL/vfsgen.svg?branch=master)](https://travis-ci.org/shurcooL/vfsgen) [![GoDoc](https://godoc.org/github.com/shurcooL/vfsgen?status.svg)](https://godoc.org/github.com/shurcooL/vfsgen)
+[![Build Status](https://travis-ci.org/shurcooL/vfsgen.svg?branch=master)](https://travis-ci.org/shurcooL/vfsgen) [![GoDoc](https://godoc.org/github.com/gozelle/vfs?status.svg)](https://godoc.org/github.com/gozelle/vfs)
 
 Package vfsgen takes an http.FileSystem (likely at `go generate` time) and
 generates Go code that statically implements the provided http.FileSystem.
@@ -20,7 +20,7 @@ Installation
 ------------
 
 ```bash
-go get -u github.com/shurcooL/vfsgen
+go get -u github.com/gozelle/vfs
 ```
 
 Usage
@@ -104,7 +104,7 @@ import (
 	"log"
 
 	"example.com/project/data"
-	"github.com/shurcooL/vfsgen"
+	"github.com/gozelle/vfs"
 )
 
 func main() {
@@ -128,7 +128,7 @@ Note that "dev" build tag is used to access the source filesystem, and the outpu
 Make sure it's installed and available in your PATH.
 
 ```bash
-go get -u github.com/shurcooL/vfsgen/cmd/vfsgendev
+go get -u github.com/gozelle/vfs/cmd/vfsgendev
 ```
 
 Then the "//go:generate go run -tags=dev assets_generate.go" directive can be replaced with:

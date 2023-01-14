@@ -1,3 +1,4 @@
+//go:build generate
 // +build generate
 
 package main
@@ -5,8 +6,7 @@ package main
 import (
 	"log"
 	"net/http"
-
-	"github.com/shurcooL/vfsgen"
+	
 	"golang.org/x/tools/godoc/vfs/httpfs"
 	"golang.org/x/tools/godoc/vfs/mapfs"
 )
@@ -21,7 +21,7 @@ func main() {
 		// TODO: Empty folder somehow?
 		//"folder-empty/":                  "",
 	}))
-
+	
 	err := vfsgen.Generate(fs, vfsgen.Options{
 		Filename:    "test_vfsdata_test.go",
 		PackageName: "test_test",
