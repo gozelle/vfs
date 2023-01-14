@@ -17,7 +17,8 @@ func Proxy(dir string) http.FileSystem {
 			panic(fmt.Errorf("new bundle error: %s", err))
 		}
 	}()
-	var p string
+	
+	p := dir
 	if !strings.HasPrefix(dir, "/") {
 		var pwd string
 		pwd, err = os.Getwd()
