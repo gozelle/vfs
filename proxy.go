@@ -17,11 +17,16 @@ func Proxy(dir string) http.FileSystem {
 			panic(fmt.Errorf("new bundle error: %s", err))
 		}
 	}()
-	pwd, err := os.Getwd()
-	if err != nil {
-		return nil
+	var p string
+	if !strings.HasPrefix(dir, "/") {
+		var pwd string
+		pwd, err = os.Getwd()
+		if err != nil {
+			return nil
+		}
+		p = filepath.Join(pwd, dir)
 	}
-	p := filepath.Join(pwd, dir)
+	
 	info, err := os.Stat(p)
 	if err != nil {
 		return nil
