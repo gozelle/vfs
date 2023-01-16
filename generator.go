@@ -58,8 +58,8 @@ type toc struct {
 	HasFile           bool // There's at least one uncompressed file.
 }
 
-// fileInfo is a definition of a file.
-type fileInfo struct {
+// FileInfo is a definition of a file.
+type FileInfo struct {
 	Path             string
 	Name             string
 	ModTime          time.Time
@@ -86,7 +86,7 @@ func findAndWriteFiles(buf *bytes.Buffer, fs http.FileSystem, toc *toc) error {
 		
 		switch fi.IsDir() {
 		case false:
-			file := &fileInfo{
+			file := &FileInfo{
 				Path:             path,
 				Name:             pathpkg.Base(path),
 				ModTime:          fi.ModTime().UTC(),
@@ -164,7 +164,7 @@ func readDirPaths(fs http.FileSystem, dirname string) ([]string, error) {
 
 // writeCompressedFileInfo writes CompressedFileInfo.
 // It returns errCompressedNotSmaller if compressed file is not smaller than original.
-func writeCompressedFileInfo(w io.Writer, file *fileInfo, r io.Reader) error {
+func writeCompressedFileInfo(w io.Writer, file *FileInfo, r io.Reader) error {
 	err := t.ExecuteTemplate(w, "CompressedFileInfo-Before", file)
 	if err != nil {
 		return err
@@ -189,7 +189,7 @@ func writeCompressedFileInfo(w io.Writer, file *fileInfo, r io.Reader) error {
 var errCompressedNotSmaller = errors.New("compressed file is not smaller than original")
 
 // Write FileInfo.
-func writeFileInfo(w io.Writer, file *fileInfo, r io.Reader) error {
+func writeFileInfo(w io.Writer, file *FileInfo, r io.Reader) error {
 	err := t.ExecuteTemplate(w, "FileInfo-Before", file)
 	if err != nil {
 		return err

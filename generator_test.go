@@ -1,6 +1,7 @@
 package vfs_test
 
 import (
+	"github.com/gozelle/vfs"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -25,7 +26,7 @@ import (
 func Example() {
 	var fs http.FileSystem = http.Dir("assets")
 	
-	err := vfsgen.Generate(fs, vfsgen.Options{})
+	err := vfs.Generate(fs, vfs.Options{})
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -88,7 +89,7 @@ func TestGenerate_buildAndGofmt(t *testing.T) {
 	for _, test := range tests {
 		filename := filepath.Join(tempDir, test.filename)
 		
-		err := vfsgen.Generate(test.fs, vfsgen.Options{
+		err := vfs.Generate(test.fs, vfs.Options{
 			Filename:    filename,
 			PackageName: "test",
 		})

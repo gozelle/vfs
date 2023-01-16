@@ -9,52 +9,108 @@ import (
 	"net/http"
 	"os"
 	pathpkg "path"
+	"path/filepath"
 	"sync"
 	"time"
 )
 
-func NewFileSystem() *FileSystem {
-	return &FileSystem{
-		paths: map[string]interface{}{
-			"/": &DirInfo{
-				name:    "/",
-				modTime: time.Now(),
-			},
-		},
+func NewFS() *FS {
+	return &FS{
+		paths: map[string]interface{}{},
 	}
 }
 
-type FileSystem struct {
+type FS struct {
 	lock  sync.Mutex
 	paths map[string]interface{}
 }
 
-//func (fs *FileSystem) Add(dir, name string, content []byte) (err error) {
-//	fs.lock.Lock()
-//	defer func() {
-//		fs.lock.Unlock()
-//	}()
-//
-//	path := filepath.Join(dir, name)
-//	fs.paths[path] = CompressedFileInfo{
-//		name:              name,
-//		modTime:           time.Now(),
-//		uncompressedSize:  int64(len(content)),
-//		compressedContent: content,
-//	}
-//
-//	// TODO 此处需要进一步处理
-//	fs.paths["/"].(*DirInfo).entries = []os.FileInfo{
-//		fs.paths[path].(os.FileInfo),
-//	}
-//	return
-//}
-
-func (fs *FileSystem) Open(path string) (http.File, error) {
+func (fs *FS) Paths() map[string]interface{} {
 	fs.lock.Lock()
 	defer func() {
 		fs.lock.Unlock()
 	}()
+	
+	m := map[string]interface{}{}
+	for k, v := range fs.paths {
+		m[k] = v
+	}
+	
+	return m
+}
+
+func (fs *FS) Add(dir, name string, content []byte) {
+	
+	fs.lock.Lock()
+	defer func() {
+		fs.lock.Unlock()
+	}()
+	
+	if fs.paths == nil {
+		fs.paths = map[string]interface{}{}
+	}
+	
+	w := &bytes.Buffer{}
+	
+	gw := gzip.NewWriter(w)
+	_, _ = gw.Write(content)
+	_ = gw.Flush()
+	_ = gw.Close()
+	
+	path := filepath.Join(dir, name)
+	fs.paths[path] = &CompressedFileInfo{
+		name:              name,
+		modTime:           time.Now(),
+		uncompressedSize:  int64(len(content)),
+		compressedContent: w.Bytes(),
+	}
+	
+	parent := ""
+	for _, v := range filepath.SplitList(dir) {
+		parent += filepath.Join(parent, v)
+		if _, ok := fs.paths[parent]; ok {
+			continue
+		}
+		fs.paths[parent] = &DirInfo{
+			name:    parent,
+			modTime: time.Now(),
+		}
+	}
+	
+	fs.adjustEntries()
+	
+	return
+}
+
+// TODO 处理递归目录的情况，现在支持一级目录
+func (fs *FS) adjustEntries() {
+	for _, v := range fs.paths {
+		switch dir := v.(type) {
+		case *DirInfo:
+			dir.entries = []os.FileInfo{}
+		}
+	}
+	for k, v := range fs.paths {
+		switch v.(type) {
+		case *CompressedFileInfo:
+			pk := filepath.Join(k, "../")
+			pi := fs.paths[pk]
+			p := pi.(*DirInfo)
+			p.entries = append(p.entries, v.(os.FileInfo))
+		}
+	}
+}
+
+func (fs *FS) Open(path string) (http.File, error) {
+	
+	fs.lock.Lock()
+	defer func() {
+		fs.lock.Unlock()
+	}()
+	
+	if fs.paths == nil {
+		fs.paths = map[string]interface{}{}
+	}
 	
 	path = pathpkg.Clean("/" + path)
 	f, ok := fs.paths[path]

@@ -37,6 +37,7 @@ func Walk(fs http.FileSystem, root string, fn WalkFunc) (err error) {
 
 // walk recursively descends path, calling walkFn.
 func walk(fs http.FileSystem, path string, info fsi.FileInfo, walkFn WalkFunc) error {
+	
 	if !info.IsDir() {
 		return walkFn(path, info, nil)
 	}
