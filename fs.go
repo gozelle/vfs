@@ -95,8 +95,10 @@ func (fs *FS) adjustEntries() {
 		case *CompressedFileInfo:
 			pk := filepath.Join(k, "../")
 			pi := fs.paths[pk]
-			p := pi.(*DirInfo)
-			p.entries = append(p.entries, v.(os.FileInfo))
+			p, ok := pi.(*DirInfo)
+			if ok {
+				p.entries = append(p.entries, v.(os.FileInfo))
+			}
 		}
 	}
 }
